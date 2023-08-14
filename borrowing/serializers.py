@@ -1,7 +1,9 @@
+from book.serializers import BookDetailSerializer
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from borrowing.models import Borrowing
+from user.serializers import UserSerializer
 
 
 class BorrowingSerializer(serializers.ModelSerializer):
