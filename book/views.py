@@ -23,6 +23,15 @@ class BookViewSet(
     queryset = Book.objects.all()
     permission_classes = IsAdminOrIfAuthenticatedReadOnly
 
+    def get_queryset(self):
+        title = self.request.query_params.get("title")
+        queryset = self.queryset
+
+        if title:
+            queryset = queryset.filter(title__icontains=title)
+
+        return queryset.distinct()
+
     def get_serializer_class(self):
         if self.action == "list":
             return BookListSerializer
