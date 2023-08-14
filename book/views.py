@@ -11,7 +11,7 @@ from book.serializers import (
     BookImageSerializer,
 )
 from book.models import Book
-from book.permissions import IsAdminOrIfAuthenticatedReadOnly
+from permissions.permissions import IsAdminOrIfAuthenticatedReadOnly
 
 
 class BookViewSet(
