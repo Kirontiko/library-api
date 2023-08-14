@@ -21,7 +21,7 @@ class Book(models.Model):
     author = models.CharField(max_length=255)
     cover = models.CharField(choices=COVER_CHOICES, max_length=4)
     inventory = models.PositiveIntegerField()
-    daily_fee = models.DecimalField(decimal_places=2)
+    daily_fee = models.DecimalField(decimal_places=2, max_digits=8)
     image = models.ImageField(null=True, upload_to=book_image_file_path)
 
     class Meta:
