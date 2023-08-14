@@ -17,12 +17,12 @@ from borrowing.serializers import (
 class BorrowingViewSet(viewsets.ModelViewSet):
     queryset = Borrowing.objects.all()
     serializer_class = BorrowingSerializer
-    permissions = [IsAdminOrIfAuthenticatedReadOnly, ]
+    permission_classes = [IsAdminOrIfAuthenticatedReadOnly, ]
 
     def get_queryset(self):
         queryset = self.queryset
 
-        if not self.request.user.is_staff():
+        if not self.request.user.is_staff:
             queryset = self.queryset.get(user=self.request.user)
 
         if self.action in ("list", "retrieve"):
@@ -32,7 +32,7 @@ class BorrowingViewSet(viewsets.ModelViewSet):
             service = FilteringBorrowingService(
                 queryset=queryset,
                 filters=self.request.query_params,
-                is_user_staff=self.request.user.is_staff()
+                is_user_staff=self.request.user.is_staff
             )
             queryset = service.perform()
         return queryset
