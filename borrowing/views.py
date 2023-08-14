@@ -6,6 +6,8 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets, status
 
+from book.models import Book
+
 from borrowing.models import Borrowing
 from borrowing.serializers import (
     BorrowingSerializer,
@@ -47,6 +49,10 @@ class BorrowingViewSet(viewsets.ModelViewSet):
         return BorrowingSerializer
 
     def perform_create(self, serializer):
+        book = serializer.validated_data["book"]
+        book.inventory -= 1
+        book.save()
+
         serializer.save(user=self.request.user)
 
     @action(
@@ -56,11 +62,20 @@ class BorrowingViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated, ],
     )
     def borrowing_return(self, request, pk=None):
-        borrowing = get_object_or_404(Borrowing, pk=pk)
+        borrowing = get_object_or_404(
+            Borrowing.objects.filter(user=request.user),
+            pk=pk
+        )
 
-        borrowing.is_active = False
-        borrowing.book.inventory += 1
-        borrowing.actual_return_date = timezone.now()
-        borrowing.save()
+        if borrowing.is_active:
+            book = Book.objects.get(id=borrowing.book.id)
 
-        return Response(status=status.HTTP_204_NO_CONTENT)
+            borrowing.is_active = False
+            book.inventory += 1
+            borrowing.actual_return_date = timezone.now()
+
+            book.save()
+            borrowing.save()
+
+            return Response(status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_404_NOT_FOUND)
