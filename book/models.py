@@ -24,5 +24,8 @@ class Book(models.Model):
     daily_fee = models.DecimalField()
     image = models.ImageField(null=True, upload_to=book_image_file_path)
 
+    class Meta:
+        ordering = ["title"]
+
     def __str__(self):
         return self.title
