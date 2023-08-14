@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from models import Book
+from book.models import Book
 
 
 class BookSerializer(serializers.ModelSerializer):
@@ -9,7 +9,8 @@ class BookSerializer(serializers.ModelSerializer):
                   "title",
                   "author",
                   "cover",
-                  "daily_fee", )
+                  "daily_fee",
+                  "inventory", )
 
 
 class BookListSerializer(serializers.ModelSerializer):

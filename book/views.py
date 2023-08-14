@@ -1,8 +1,8 @@
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
-from rest_framework import mixins, status
+from rest_framework.viewsets import ModelViewSet
+from rest_framework import status
 
 from book.serializers import (
     BookSerializer,
@@ -13,15 +13,11 @@ from book.serializers import (
 from book.models import Book
 from permissions.permissions import IsAdminOrIfAuthenticatedReadOnly
 
-
 class BookViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    GenericViewSet,
+    ModelViewSet
 ):
     queryset = Book.objects.all()
-    permission_classes = IsAdminOrIfAuthenticatedReadOnly
+    permission_classes = [IsAdminOrIfAuthenticatedReadOnly, ]
 
     def get_queryset(self):
         title = self.request.query_params.get("title")
