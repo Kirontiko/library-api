@@ -1,3 +1,4 @@
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -28,6 +29,7 @@ INSTALLED_APPS = [
 
     "book",
     "borrowing",
+    "user",
 ]
 
 MIDDLEWARE = [
@@ -87,6 +89,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTH_USER_MODEL = "user.User"
 
 LANGUAGE_CODE = "en-us"
 
@@ -104,4 +107,17 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media/"
 
 
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": False,
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZE"
+}
