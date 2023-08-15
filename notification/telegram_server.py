@@ -17,6 +17,7 @@ logging.basicConfig(
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print(update)
     print(update.effective_chat.id)
+
     await context.bot.send_message(
         chat_id=update.effective_chat.id, text="Welcome to Library API 🤓📚"
     )
