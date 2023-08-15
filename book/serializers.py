@@ -20,6 +20,7 @@ class BookListSerializer(serializers.ModelSerializer):
                   "title",
                   "author",
                   "daily_fee",
+                  "inventory",
                   "image", )
 
 
