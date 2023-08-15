@@ -77,5 +77,11 @@ class BorrowingViewSet(viewsets.ModelViewSet):
             book.save()
             borrowing.save()
 
-            return Response(status=status.HTTP_200_OK)
-        return Response(status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"Success": "Book returned!"},
+                status=status.HTTP_200_OK
+            )
+        return Response(
+            {"Fail": "You've returned this book before"},
+            status=status.HTTP_404_NOT_FOUND
+        )
