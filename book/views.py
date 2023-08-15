@@ -13,6 +13,7 @@ from book.serializers import (
 from book.models import Book
 from permissions.permissions import IsAdminOrIfAuthenticatedReadOnly
 
+
 class BookViewSet(
     ModelViewSet
 ):
