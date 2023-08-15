@@ -14,6 +14,7 @@ from borrowing.serializers import (
     BorrowingListSerializer,
     BorrowingDetailSerializer
 )
+from notification.services import send_notification
 
 
 class BorrowingViewSet(viewsets.ModelViewSet):
@@ -54,6 +55,10 @@ class BorrowingViewSet(viewsets.ModelViewSet):
         book.save()
 
         serializer.save(user=self.request.user)
+
+        borrowing = serializer.validated_data["expected_return_date"]
+        send_notification(user=self.request.user, message=f"You have borrowed a book {book.title}. "
+                                                          f"Please return it by {borrowing}")
 
     @action(
         methods=["PATCH"],

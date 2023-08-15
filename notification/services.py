@@ -21,3 +21,12 @@ def send_start_notification(user):
     url = f"https://api.telegram.org/bot{os.environ['TELEGRAM_TOKEN']}/sendMessage?chat_id={chat_id}&text={MESSAGE}"
 
     requests.get(url)
+
+
+def send_notification(user, message):
+
+    chat_id = user.chat_id
+    url = f"https://api.telegram.org/bot{os.environ['TELEGRAM_TOKEN']}/sendMessage?chat_id={chat_id}&text={message}"
+
+    requests.get(url)
+
