@@ -1,3 +1,5 @@
+from secrets import token_urlsafe
+
 from django.contrib.auth.models import (
     AbstractUser,
     BaseUserManager,
@@ -43,6 +45,8 @@ class UserManager(BaseUserManager):
 class User(AbstractUser):
     username = None
     email = models.EmailField(_("email address"), unique=True)
+    token = models.CharField(default=token_urlsafe(8), max_length=8)
+    chat_id = models.IntegerField(null=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
