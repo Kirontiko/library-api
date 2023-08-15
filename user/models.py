@@ -7,6 +7,8 @@ from django.contrib.auth.models import (
 from django.db import models
 from django.utils.translation import gettext as _
 
+from notification.services import create_start_url
+
 
 class UserManager(BaseUserManager):
     """Define a model manager for User model with no username field."""
@@ -53,3 +55,5 @@ class User(AbstractUser):
 
     objects = UserManager()
 
+    def get_start_url(self):
+        return create_start_url(self)
