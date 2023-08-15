@@ -34,7 +34,10 @@ class BorrowingListSerializer(BorrowingSerializer):
     )
 
     class Meta(BorrowingSerializer.Meta):
-        fields = BorrowingSerializer.Meta.fields + ["is_active", "user"]
+        fields = BorrowingSerializer.Meta.fields + [
+            "is_active",
+            "user",
+        ]
 
 
 class BorrowingDetailSerializer(BorrowingListSerializer):

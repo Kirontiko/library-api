@@ -1,3 +1,5 @@
+from django.db import transaction
+from django.http import HttpResponseRedirect
 from django.utils import timezone
 
 from rest_framework.response import Response
@@ -14,12 +16,18 @@ from borrowing.serializers import (
     BorrowingListSerializer,
     BorrowingDetailSerializer
 )
+from services.create_payment import PaymentInitialization
 
 
 class BorrowingViewSet(viewsets.ModelViewSet):
     queryset = Borrowing.objects.all()
     serializer_class = BorrowingSerializer
     permission_classes = [IsAuthenticated, ]
+
+    def create(self, request, *args, **kwargs):
+        response = super(BorrowingViewSet, self).create(request, *args, **kwargs)
+
+        return HttpResponseRedirect(redirect_to=self.payment.session_url)
 
     def get_queryset(self):
         queryset = self.queryset
@@ -49,13 +57,13 @@ class BorrowingViewSet(viewsets.ModelViewSet):
         return BorrowingSerializer
 
     def perform_create(self, serializer):
-        book = serializer.validated_data["book"]
-        book.inventory -= 1
-        book.save()
+        with transaction.atomic():
+            book = serializer.validated_data["book"]
+            book.inventory -= 1
+            book.save()
 
-        serializer.save(user=self.request.user)
-
-
+            borrowing = serializer.save(user=self.request.user)
+            self.payment = PaymentInitialization(borrowing).perform_create_payment()
 
     @action(
         methods=["PATCH"],
@@ -78,7 +86,6 @@ class BorrowingViewSet(viewsets.ModelViewSet):
 
             book.save()
             borrowing.save()
-
             return Response(
                 {"Success": "Book returned!"},
                 status=status.HTTP_200_OK
