@@ -3,11 +3,11 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from borrowing.models import Borrowing
+from payment.serializers import PaymentSerializer
 from user.serializers import UserSerializer
 
 
 class BorrowingSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Borrowing
         fields = [
@@ -43,3 +43,10 @@ class BorrowingListSerializer(BorrowingSerializer):
 class BorrowingDetailSerializer(BorrowingListSerializer):
     user = UserSerializer(read_only=True)
     book = BookDetailSerializer(read_only=True)
+
+    payments = PaymentSerializer(read_only=True, many=True)
+
+    class Meta(BorrowingListSerializer.Meta):
+        fields = BorrowingListSerializer.Meta.fields + [
+            "payments"
+        ]
