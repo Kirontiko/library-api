@@ -1,3 +1,4 @@
+from django.utils import timezone
 from book.serializers import BookDetailSerializer
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -26,7 +27,7 @@ class BorrowingSerializer(serializers.ModelSerializer):
         return value
 
     def validate_expected_return_date(self, attrs):
-        minimal_return_data = datetime.datetime.now().date()
+        minimal_return_data = timezone.now()
         Borrowing.validate_expected_return_date(
             attrs,
             minimal_return_data,
@@ -51,3 +52,20 @@ class BorrowingListSerializer(BorrowingSerializer):
 class BorrowingDetailSerializer(BorrowingListSerializer):
     user = UserSerializer(read_only=True)
     book = BookDetailSerializer(read_only=True)
+
+
+class BorrowingReturnSerializer(BorrowingListSerializer):
+    class Meta:
+        model = Borrowing
+        fields = [
+            "id",
+            "borrow_date",
+            "expected_return_date",
+            "book",
+        ]
+        read_only_fields = [
+            "id",
+            "borrow_date",
+            "expected_return_date",
+            "book",
+        ]
