@@ -118,3 +118,10 @@ class PaymentService:
             book.inventory -= 1
         borrowing.save()
         book.save()
+
+    @classmethod
+    def check_user_borrowings(cls, user, book):
+        return user.borrowings.filter(
+            book=book,
+            is_active=True
+        ).count() > 1

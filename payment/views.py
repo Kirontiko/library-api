@@ -1,11 +1,17 @@
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from payment.models import Payment
 from payment.serializers import PaymentListSerializer, PaymentSerializer
 from services.create_payment import PaymentService
+
+
+class PaymentPagination(PageNumberPagination):
+    page_size = 10
+    max_page_size = 100
 
 
 class PaymentViewSet(
@@ -18,6 +24,7 @@ class PaymentViewSet(
         "borrowing__user"
     )
     permission_classes = [IsAuthenticated, ]
+    pagination_class = PaymentPagination
 
     def get_queryset(self):
         queryset = self.queryset
