@@ -1,5 +1,7 @@
 from django.db import transaction
 from django.utils import timezone
+from rest_framework.exceptions import ValidationError
+from rest_framework.pagination import PageNumberPagination
 
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -18,10 +20,16 @@ from borrowing.serializers import (
 from services.create_payment import PaymentService
 
 
+class BorrowingPagination(PageNumberPagination):
+    page_size = 10
+    max_page_size = 100
+
+
 class BorrowingViewSet(viewsets.ModelViewSet):
     queryset = Borrowing.objects.all()
     serializer_class = BorrowingSerializer
     permission_classes = [IsAuthenticated, ]
+    pagination_class = BorrowingPagination
 
     def create(self, request, *args, **kwargs):
         borrowing = super(BorrowingViewSet, self).create(request, *args, **kwargs)
@@ -71,6 +79,14 @@ class BorrowingViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         with transaction.atomic():
             borrowing = serializer.save(user=self.request.user)
+            borrowing_permission = PaymentService.check_user_borrowings(
+                user=self.request.user,
+                book=borrowing.book
+            )
+            if borrowing_permission:
+                raise ValidationError(
+                    "You can`t borrow the book, that you already have "
+                )
             self.payment = PaymentService(borrowing, self.request).handle()
 
     @action(
