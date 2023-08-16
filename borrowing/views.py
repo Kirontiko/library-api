@@ -25,9 +25,13 @@ class BorrowingViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, ]
 
     def create(self, request, *args, **kwargs):
-        response = super(BorrowingViewSet, self).create(request, *args, **kwargs)
-
-        return HttpResponseRedirect(redirect_to=self.payment.session_url)
+        borrowing = super(BorrowingViewSet, self).create(request, *args, **kwargs)
+        borrowing_data = borrowing.data
+        response = {
+            "borrowing": borrowing_data,
+            "url_to_process_payment": self.payment.session_url
+        }
+        return Response(response)
 
     def get_queryset(self):
         queryset = self.queryset
