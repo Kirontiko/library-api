@@ -1,5 +1,4 @@
 from django.db import transaction
-from django.http import HttpResponseRedirect
 from django.utils import timezone
 
 from rest_framework.response import Response
@@ -8,7 +7,6 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets, status
 
-from book.models import Book
 
 from borrowing.models import Borrowing
 from borrowing.serializers import (
@@ -16,7 +14,7 @@ from borrowing.serializers import (
     BorrowingListSerializer,
     BorrowingDetailSerializer
 )
-from services.create_payment import PaymentInitialization
+from services.create_payment import PaymentService
 
 
 class BorrowingViewSet(viewsets.ModelViewSet):
@@ -65,12 +63,8 @@ class BorrowingViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         with transaction.atomic():
-            book = serializer.validated_data["book"]
-            book.inventory -= 1
-            book.save()
-
             borrowing = serializer.save(user=self.request.user)
-            self.payment = PaymentInitialization(borrowing).perform_create_payment()
+            self.payment = PaymentService(borrowing, self.request).handle()
 
     @action(
         methods=["PATCH"],
@@ -85,14 +79,23 @@ class BorrowingViewSet(viewsets.ModelViewSet):
         )
 
         if borrowing.is_active:
-            book = Book.objects.get(id=borrowing.book.id)
-
-            borrowing.is_active = False
-            book.inventory += 1
-            borrowing.actual_return_date = timezone.now()
-
-            book.save()
+            borrowing.actual_return_date = timezone.now().date()
             borrowing.save()
+
+            if borrowing.actual_return_date > borrowing.expected_return_date:
+                self.payment = PaymentService(borrowing, request).handle()
+                return Response(
+                    {
+                        "Pending": "You have to pay your fine",
+                        "payment_url": self.payment.session_url
+                    },
+                    status=status.HTTP_200_OK
+                )
+
+            PaymentService.perform_modifications(
+                borrowing=borrowing
+            )
+
             return Response(
                 {"Success": "Book returned!"},
                 status=status.HTTP_200_OK

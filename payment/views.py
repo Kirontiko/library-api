@@ -5,6 +5,7 @@ from rest_framework.response import Response
 
 from payment.models import Payment
 from payment.serializers import PaymentListSerializer, PaymentSerializer
+from services.create_payment import PaymentService
 
 
 class PaymentViewSet(
@@ -40,6 +41,10 @@ class PaymentViewSet(
     def success(self, request):
         session_id = self.request.query_params.get("session_id")
         payment = Payment.objects.get(session_id=session_id)
+
+        borrowing = payment.borrowing
+        PaymentService.perform_modifications(borrowing)
+
         payment.status = "PAID"
         payment.save()
 
@@ -59,7 +64,8 @@ class PaymentViewSet(
     def cancel(self, request):
         return Response(
             {
-                "failed": "Payment can be paid a bit later (but the session is available for only 24h)"
+                "failed": "Payment can be paid a bit later "
+                          "(but the session is available for only 24h)"
             },
             status=status.HTTP_400_BAD_REQUEST
         )
