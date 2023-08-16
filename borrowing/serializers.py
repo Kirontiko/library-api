@@ -4,6 +4,8 @@ from rest_framework.exceptions import ValidationError
 
 from borrowing.models import Borrowing
 from user.serializers import UserSerializer
+from pytz import utc
+import datetime
 
 
 class BorrowingSerializer(serializers.ModelSerializer):
@@ -23,6 +25,16 @@ class BorrowingSerializer(serializers.ModelSerializer):
                 "We don't have this book right now"
             )
         return value
+
+    def validate_expected_return_date(self, attrs):
+        minimal_return_data = datetime.datetime.now().date()
+        Borrowing.validate_expected_return_date(
+            attrs,
+            minimal_return_data,
+            serializers.ValidationError
+        )
+
+        return attrs
 
 
 class BorrowingListSerializer(BorrowingSerializer):

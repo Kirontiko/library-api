@@ -17,3 +17,8 @@ class Borrowing(models.Model):
 
     def __str__(self):
         return f"{self.user.email} borrowed {self.book.title} {self.borrow_date}"
+
+    @staticmethod
+    def validate_expected_return_date(expected_return_date, minimum_return_date, error_to_raise):
+        if not (expected_return_date >= minimum_return_date):
+            raise error_to_raise("Return data can't be in the past")
