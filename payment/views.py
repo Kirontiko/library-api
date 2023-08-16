@@ -1,9 +1,11 @@
+from django_q.tasks import async_task
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from notification.services import send_notification
 from payment.models import Payment
 from payment.serializers import PaymentListSerializer, PaymentSerializer
 from services.create_payment import PaymentService
@@ -54,6 +56,11 @@ class PaymentViewSet(
 
         payment.status = "PAID"
         payment.save()
+        async_task(send_notification,
+                   user=self.request.user,
+                   message=f"You have successfully paid rent for the book"
+                           f" {borrowing.book.title}. "
+                           f"Please return it by {borrowing.expected_return_date}")
 
         return Response(
             {

@@ -89,9 +89,11 @@ class BorrowingViewSet(viewsets.ModelViewSet):
                 )
             self.payment = PaymentService(borrowing, self.request).handle()
 
-        borrowing = serializer.validated_data["expected_return_date"]
-        async_task(send_notification, user=self.request.user, message=f"You have borrowed a book {book.title}. "
-                                                                        f"Please return it by {borrowing}")
+        book_title = serializer.validated_data['book'].title
+        async_task(send_notification,
+                   user=self.request.user,
+                   message=f"You have initiate borrowing the book {book_title}. "
+                           f"You have only 24 hours before payment session expiring")
 
     @action(
         methods=["PATCH"],
@@ -122,7 +124,9 @@ class BorrowingViewSet(viewsets.ModelViewSet):
             PaymentService.perform_modifications(
                 borrowing=borrowing
             )
-            async_task(send_notification, self.request.user, message=f"You have returned a book {book.title}.")
+            async_task(send_notification,
+                       self.request.user,
+                       message=f"You have returned a book {borrowing.book.title}.")
 
             return Response(
                 {"Success": "Book returned!"},
