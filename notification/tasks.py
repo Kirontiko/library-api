@@ -39,5 +39,5 @@ def send_notification_delayed_return():
 
                     delayed_books.append(borrowing.book.title)
 
-        message = f"You forgot to return book: {delayed_books}"
+        message = f"You forgot to return book(s): {delayed_books}"
         async_task(send_notification, user, message)
