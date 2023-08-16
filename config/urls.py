@@ -30,3 +30,11 @@ if not Schedule.objects.filter(name='delayed borrowers').exists():
         repeats=-1,
         schedule_type=Schedule.DAILY,
     )
+
+if not Schedule.objects.filter(name='list of borrowers').exists():
+    schedule(
+        func="notification.tasks.send_daily_staff_notifications",
+        name="list of borrowers",
+        repeats=-1,
+        schedule_type=Schedule.DAILY,
+    )
