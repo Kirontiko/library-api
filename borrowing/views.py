@@ -27,11 +27,14 @@ class BorrowingViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         borrowing = super(BorrowingViewSet, self).create(request, *args, **kwargs)
         borrowing_data = borrowing.data
+        borrowing_headers = borrowing.headers
         response = {
             "borrowing": borrowing_data,
             "url_to_process_payment": self.payment.session_url
         }
-        return Response(response)
+        return Response(data=response,
+                        status=status.HTTP_201_CREATED,
+                        headers=borrowing_headers)
 
     def get_queryset(self):
         queryset = self.queryset
