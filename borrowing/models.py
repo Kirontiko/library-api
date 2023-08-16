@@ -13,7 +13,7 @@ class Borrowing(models.Model):
     is_active = models.BooleanField(default=True)
 
     class Meta:
-        ordering = ["-expected_return_date"]
+        ordering = ["-is_active", "expected_return_date"]
 
     def __str__(self):
         return f"{self.user.email} borrowed {self.book.title} {self.borrow_date}"

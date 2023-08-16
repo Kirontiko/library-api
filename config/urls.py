@@ -9,6 +9,7 @@ urlpatterns = [
     path("api/v1/books/", include("book.urls", namespace="book")),
     path("api/v1/users/", include("user.urls", namespace="user")),
     path("api/v1/borrowings/", include("borrowing.urls", namespace="borrowing")),
+    path("api/v1/payments/", include("payment.urls", namespace="payment"))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 from django_q.tasks import schedule

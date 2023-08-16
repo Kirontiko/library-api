@@ -1,4 +1,5 @@
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -14,11 +15,17 @@ from book.models import Book
 from permissions.permissions import IsAdminOrIfAuthenticatedReadOnly
 
 
+class BookPagination(PageNumberPagination):
+    page_size = 10
+    max_page_size = 100
+
+
 class BookViewSet(
     ModelViewSet
 ):
     queryset = Book.objects.all()
     permission_classes = [IsAdminOrIfAuthenticatedReadOnly, ]
+    pagination_class = BookPagination
 
     def get_queryset(self):
         title = self.request.query_params.get("title")
