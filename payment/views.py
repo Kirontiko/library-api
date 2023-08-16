@@ -1,4 +1,5 @@
 from django_q.tasks import async_task
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
@@ -16,6 +17,7 @@ class PaymentPagination(PageNumberPagination):
     max_page_size = 100
 
 
+@extend_schema(tags=["Payments"])
 class PaymentViewSet(
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
@@ -41,6 +43,17 @@ class PaymentViewSet(
 
         return PaymentSerializer
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "session_id",
+                type=str,
+                description="Filter by session_id (ex.?session_id=zxt-1231-qwezq)",
+                required=True
+            )
+        ],
+        description="""Endpoint for succeeded payment""",
+    )
     @action(
         detail=False,
         methods=["GET"],
@@ -76,6 +89,7 @@ class PaymentViewSet(
         url_path="cancel"
     )
     def cancel(self, request):
+        """Endpoint for canceling payment"""
         return Response(
             {
                 "failed": "Payment can be paid a bit later "

@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.utils import timezone
 from django_q.tasks import async_task
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
@@ -25,6 +26,7 @@ class BorrowingPagination(PageNumberPagination):
     max_page_size = 100
 
 
+@extend_schema(tags=["Borrowings"])
 class BorrowingViewSet(viewsets.ModelViewSet):
     queryset = Borrowing.objects.all()
     serializer_class = BorrowingSerializer
@@ -64,7 +66,7 @@ class BorrowingViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(user_id=user_id)
 
             if is_active:
-                queryset = queryset.filter(is_active=is_active)
+                queryset = queryset.filter(is_active=is_active.capitalize())
         return queryset
 
     def get_serializer_class(self):
@@ -102,6 +104,7 @@ class BorrowingViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated, ],
     )
     def borrowing_return(self, request, pk=None):
+        """Endpoint for returning book to library"""
         borrowing = get_object_or_404(
             Borrowing.objects.filter(user=request.user),
             pk=pk
@@ -136,3 +139,22 @@ class BorrowingViewSet(viewsets.ModelViewSet):
             {"Fail": "You've returned this book before"},
             status=status.HTTP_404_NOT_FOUND
         )
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "user_id",
+                type=int,
+                description="Filter by id (ex.?user_id=1) (Admin ONLY)",
+                required=False
+            ),
+            OpenApiParameter(
+                "is_active",
+                type=bool,
+                description="Filter by is_active (ex.?is_active=True)",
+                required=False
+            )
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
