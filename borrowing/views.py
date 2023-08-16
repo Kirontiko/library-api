@@ -16,6 +16,8 @@ from borrowing.serializers import (
 )
 from notification.services import send_notification
 
+from django_q.tasks import async_task
+
 
 class BorrowingViewSet(viewsets.ModelViewSet):
     queryset = Borrowing.objects.all()
@@ -57,8 +59,8 @@ class BorrowingViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
         borrowing = serializer.validated_data["expected_return_date"]
-        send_notification(user=self.request.user, message=f"You have borrowed a book {book.title}. "
-                                                          f"Please return it by {borrowing}")
+        async_task(send_notification, user=self.request.user, message=f"You have borrowed a book {book.title}. "
+                                                                        f"Please return it by {borrowing}")
 
     @action(
         methods=["PATCH"],
@@ -81,6 +83,8 @@ class BorrowingViewSet(viewsets.ModelViewSet):
 
             book.save()
             borrowing.save()
+
+            async_task(send_notification, self.request.user, message=f"You have returned a book {book.title}.")
 
             return Response(
                 {"Success": "Book returned!"},

@@ -1,3 +1,4 @@
+import datetime
 import os
 
 import django
@@ -21,3 +22,22 @@ def send_daily_notifications():
             message = "It's an every 10 minutes message (:"
 
             async_task(send_notification, user, message)
+
+
+def send_notification_delayed_return():
+    delayed_books = []
+    User = get_user_model()
+    users = User.objects.all()
+
+    for user in users:
+        borrowing_books = user.borrowings.filter(
+            is_active=True
+        )
+        if user.chat_id:
+            for borrowing in borrowing_books:
+                if borrowing.expected_return_date < datetime.date.today():
+
+                    delayed_books.append(borrowing.book.title)
+
+        message = f"You forgot to return book: {delayed_books}"
+        async_task(send_notification, user, message)
