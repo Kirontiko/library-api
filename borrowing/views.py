@@ -1,14 +1,13 @@
 from django.db import transaction
 from django.utils import timezone
+from django_q.tasks import async_task
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
-
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets, status
-
 
 from borrowing.models import Borrowing
 from borrowing.serializers import (
@@ -17,6 +16,7 @@ from borrowing.serializers import (
     BorrowingDetailSerializer,
     BorrowingReturnSerializer
 )
+from notification.services import send_notification
 from services.create_payment import PaymentService
 
 
@@ -89,6 +89,10 @@ class BorrowingViewSet(viewsets.ModelViewSet):
                 )
             self.payment = PaymentService(borrowing, self.request).handle()
 
+        borrowing = serializer.validated_data["expected_return_date"]
+        async_task(send_notification, user=self.request.user, message=f"You have borrowed a book {book.title}. "
+                                                                        f"Please return it by {borrowing}")
+
     @action(
         methods=["PATCH"],
         detail=True,
@@ -118,6 +122,7 @@ class BorrowingViewSet(viewsets.ModelViewSet):
             PaymentService.perform_modifications(
                 borrowing=borrowing
             )
+            async_task(send_notification, self.request.user, message=f"You have returned a book {book.title}.")
 
             return Response(
                 {"Success": "Book returned!"},

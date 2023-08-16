@@ -1,9 +1,12 @@
 from datetime import timedelta
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = (
@@ -26,6 +29,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 
     "rest_framework",
+    "django_q",
 
     "book",
     "borrowing",
@@ -70,7 +74,6 @@ DATABASES = {
     }
 }
 
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation."
@@ -95,12 +98,11 @@ AUTH_USER_MODEL = "user.User"
 LANGUAGE_CODE = "en-us"
 
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Europe/Kiev"
 
 USE_I18N = True
 
 USE_TZ = True
-
 
 STATIC_URL = "static/"
 
@@ -122,5 +124,15 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=50000),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "ROTATE_REFRESH_TOKENS": False,
-    "AUTH_HEADER_NAME": "HTTP_AUTHORIZE"
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZE",
+}
+
+Q_CLUSTER = {
+    "name": "library-api",
+    "timeout": 60,
+    "redis": {
+        "host": "127.0.0.1",
+        "port": 6379,
+        "db": 0,
+    },
 }

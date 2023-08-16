@@ -5,6 +5,8 @@ from django.contrib.auth.models import (
 from django.db import models
 from django.utils.translation import gettext as _
 
+from notification.services import create_start_url
+
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
@@ -38,8 +40,13 @@ class UserManager(BaseUserManager):
 class User(AbstractUser):
     username = None
     email = models.EmailField(_("email address"), unique=True)
+    token = models.CharField(max_length=11, blank=True)
+    chat_id = models.IntegerField(null=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
     objects = UserManager()
+
+    def get_start_url(self):
+        return create_start_url(self)
