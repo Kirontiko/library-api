@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.utils import timezone
 
 from rest_framework.response import Response
@@ -6,7 +7,6 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets, status
 
-from book.models import Book
 
 from borrowing.models import Borrowing
 from borrowing.serializers import (
@@ -15,12 +15,25 @@ from borrowing.serializers import (
     BorrowingDetailSerializer,
     BorrowingReturnSerializer
 )
+from services.create_payment import PaymentService
 
 
 class BorrowingViewSet(viewsets.ModelViewSet):
     queryset = Borrowing.objects.all()
     serializer_class = BorrowingSerializer
     permission_classes = [IsAuthenticated, ]
+
+    def create(self, request, *args, **kwargs):
+        borrowing = super(BorrowingViewSet, self).create(request, *args, **kwargs)
+        borrowing_data = borrowing.data
+        borrowing_headers = borrowing.headers
+        response = {
+            "borrowing": borrowing_data,
+            "url_to_process_payment": self.payment.session_url
+        }
+        return Response(data=response,
+                        status=status.HTTP_201_CREATED,
+                        headers=borrowing_headers)
 
     def get_queryset(self):
         queryset = self.queryset
@@ -29,7 +42,11 @@ class BorrowingViewSet(viewsets.ModelViewSet):
             queryset = self.queryset.filter(user=self.request.user)
 
         if self.action in ("list", "retrieve"):
-            queryset = queryset.select_related("user", "book")
+            queryset = queryset.select_related(
+                "user", "book"
+            ).prefetch_related(
+                "payments"
+            )
 
         if self.action == "list":
             user_id = self.request.query_params.get("user_id")
@@ -52,11 +69,9 @@ class BorrowingViewSet(viewsets.ModelViewSet):
         return BorrowingSerializer
 
     def perform_create(self, serializer):
-        book = serializer.validated_data["book"]
-        book.inventory -= 1
-        book.save()
-
-        serializer.save(user=self.request.user)
+        with transaction.atomic():
+            borrowing = serializer.save(user=self.request.user)
+            self.payment = PaymentService(borrowing, self.request).handle()
 
     @action(
         methods=["PATCH"],
@@ -71,14 +86,22 @@ class BorrowingViewSet(viewsets.ModelViewSet):
         )
 
         if borrowing.is_active:
-            book = Book.objects.get(id=borrowing.book.id)
-
-            borrowing.is_active = False
-            book.inventory += 1
-            borrowing.actual_return_date = timezone.now()
-
-            book.save()
+            borrowing.actual_return_date = timezone.now().date()
             borrowing.save()
+
+            if borrowing.actual_return_date > borrowing.expected_return_date:
+                self.payment = PaymentService(borrowing, request).handle()
+                return Response(
+                    {
+                        "Pending": "You have to pay your fine",
+                        "payment_url": self.payment.session_url
+                    },
+                    status=status.HTTP_200_OK
+                )
+
+            PaymentService.perform_modifications(
+                borrowing=borrowing
+            )
 
             return Response(
                 {"Success": "Book returned!"},
