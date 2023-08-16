@@ -1,4 +1,5 @@
 import os
+
 import requests
 
 from dotenv import load_dotenv
@@ -29,4 +30,3 @@ def send_notification(user, message):
     url = f"https://api.telegram.org/bot{os.environ['TELEGRAM_TOKEN']}/sendMessage?chat_id={chat_id}&text={message}"
 
     requests.get(url)
-

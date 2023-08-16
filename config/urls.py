@@ -22,3 +22,11 @@ if not Schedule.objects.filter(name='check borrowers').exists():
         schedule_type=Schedule.MINUTES,
         minutes=10,
     )
+
+if not Schedule.objects.filter(name='delayed borrowers').exists():
+    schedule(
+        func="notification.tasks.send_notification_delayed_return",
+        name="delayed borrowers",
+        repeats=-1,
+        schedule_type=Schedule.DAILY,
+    )
