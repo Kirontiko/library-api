@@ -25,19 +25,43 @@ def send_daily_notifications():
 
 
 def send_notification_delayed_return():
-    delayed_books = []
     User = get_user_model()
     users = User.objects.all()
 
     for user in users:
+        delayed_books = []
+        borrowing_books = user.borrowings.filter(
+            is_active=True
+        )
+
+        if user.chat_id:
+            for borrowing in borrowing_books:
+                if borrowing.expected_return_date < datetime.date.today():
+                    delayed_books.append(borrowing.book.title)
+
+        if delayed_books:
+            message = f"You forgot to return book(s): {delayed_books}"
+            async_task(send_notification, user, message)
+
+
+def send_notification_remind_return():
+    User = get_user_model()
+    users = User.objects.all()
+
+    for user in users:
+        books = []
         borrowing_books = user.borrowings.filter(
             is_active=True
         )
         if user.chat_id:
             for borrowing in borrowing_books:
-                if borrowing.expected_return_date < datetime.date.today():
+                date_difference = (
+                        borrowing.expected_return_date - datetime.date.today()
+                )
+                if date_difference.days == 1:
+                    print(date_difference.days)
+                    books.append(borrowing.book.title)
 
-                    delayed_books.append(borrowing.book.title)
-
-        message = f"You forgot to return book(s): {delayed_books}"
-        async_task(send_notification, user, message)
+        if books:
+            message = f"Remind tomorrow you need to return: {books}"
+            async_task(send_notification, user, message)
