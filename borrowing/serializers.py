@@ -1,3 +1,5 @@
+from django.utils import timezone
+
 from book.serializers import BookDetailSerializer
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -21,6 +23,13 @@ class BorrowingSerializer(serializers.ModelSerializer):
         if value.inventory == 0:
             raise ValidationError(
                 "We don't have this book right now"
+            )
+        return value
+
+    def validate_expected_return_date(self, value):
+        if value == timezone.now().date():
+            raise ValidationError(
+                "You cannot set expected return date as the current date"
             )
         return value
 

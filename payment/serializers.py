@@ -18,15 +18,10 @@ class PaymentSerializer(serializers.ModelSerializer):
 
 
 class PaymentListSerializer(PaymentSerializer):
-    borrowed_book = serializers.CharField(
+    borrowing = serializers.CharField(
         source="borrowing.book.title",
         read_only=True
     )
-
-    class Meta(PaymentSerializer.Meta):
-        fields = PaymentSerializer.Meta.fields + (
-            "borrowed_book",
-        )
 
 
 class PaymentDetailSerializer(PaymentListSerializer):
