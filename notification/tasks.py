@@ -42,7 +42,8 @@ def send_notification_delayed_return():
                     delayed_books.append(borrowing.book.title)
 
         if delayed_books:
-            message = f"You forgot to return book(s): {delayed_books}"
+            delayed_books_string = ", ".join(delayed_books)
+            message = f"You forgot to return book(s): {delayed_books_string}"
             async_task(send_notification, user, message)
 
 
@@ -65,7 +66,8 @@ def send_notification_remind_return():
                     books.append(borrowing.book.title)
 
         if books:
-            message = f"Remind tomorrow you need to return: {books}"
+            books_string = ", ".join(books)
+            message = f"Remind tomorrow you need to return: {books_string}"
             async_task(send_notification, user, message)
 
 
@@ -83,7 +85,8 @@ def send_daily_staff_notifications():
                 delayed_users.add(borrow.user.email)
 
         if delayed_users:
-            message = f"This users delayed their books: {delayed_users}"
+            delayed_users_string = ", ".join(delayed_users)
+            message = f"This users delayed their books: {delayed_users_string}"
             async_task(send_notification, librarian, message)
         else:
             message = "We dont have any borrowers :)"
