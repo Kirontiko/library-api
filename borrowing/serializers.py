@@ -4,7 +4,6 @@ from rest_framework.exceptions import ValidationError
 
 from borrowing.models import Borrowing
 from user.serializers import UserSerializer
-from pytz import utc
 import datetime
 
 
