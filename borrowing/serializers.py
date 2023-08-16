@@ -26,15 +26,13 @@ class BorrowingSerializer(serializers.ModelSerializer):
             )
         return value
 
-    def validate_expected_return_date(self, attrs):
-        minimal_return_data = timezone.now()
-        Borrowing.validate_expected_return_date(
-            attrs,
-            minimal_return_data,
-            serializers.ValidationError
-        )
-
-        return attrs
+    def validate_expected_return_date(self, value):
+        if value <= timezone.now().date():
+            raise ValidationError(
+                "You cannot set expected return date as the current date "
+                "or earlier date"
+            )
+        return value
 
 
 class BorrowingListSerializer(BorrowingSerializer):
