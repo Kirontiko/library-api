@@ -85,7 +85,7 @@ class BorrowingViewSet(viewsets.ModelViewSet):
             )
             if borrowing_permission:
                 raise ValidationError(
-                    "You can`t borrow the book, that you already have "
+                    "You can`t borrow the book, that you already have."
                 )
             self.payment = PaymentService(borrowing, self.request).handle()
 
@@ -93,7 +93,7 @@ class BorrowingViewSet(viewsets.ModelViewSet):
         async_task(send_notification,
                    user=self.request.user,
                    message=f"You have initiate borrowing the book {book_title}. "
-                           f"You have only 24 hours before payment session expiring")
+                           f"You have only 24 hours before payment session expiring.")
 
     @action(
         methods=["PATCH"],
